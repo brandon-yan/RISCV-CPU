@@ -7,7 +7,6 @@ module mem_ctrl(
     
     input wire ifjump,
 
-    //input wire[`Addrlen - 1 : 0] pc,
     input wire[`Addrlen - 1 : 0] if_addr,
     input wire[`Addrlen - 1 : 0] mem_addr,
 

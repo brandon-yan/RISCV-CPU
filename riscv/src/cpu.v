@@ -204,7 +204,7 @@ mem_wb _mem_wb (
 stall_ctrl _stall_ctrl (
   .rst(rst_in), .stallreq_from_id(id_stall_req),
   .stallreq_from_if(if_stall_req), .stallreq_from_mem(mem_stall_req),
-  .stall(stall)//, .jumpstall(jumpstall)
+  .stall(stall)
 );
 
 mem_ctrl _mem_ctrl (

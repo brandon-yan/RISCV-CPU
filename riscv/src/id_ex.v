@@ -42,7 +42,6 @@ always @(posedge clk ) begin
         ex_aluop <= `NOP;
         isload <= 1'b0;
         loadrd <= `ZeroReg;
-        //pc_o <= `ZeroWord;
         pc_o <= pc;
     end
     else if(rdy == 1'b0 || stall[3] == 1'b1) begin
@@ -57,7 +56,6 @@ always @(posedge clk ) begin
         ex_aluop <= `NOP;
         isload <= 1'b0;
         loadrd <= `ZeroReg;
-        //pc_o <= `ZeroWord;
         pc_o <= pc;
     end
     else if(stall[2] == 1'b0) begin
