@@ -1,0 +1,8 @@
+prefix=/mnt/c/Users/hanchong/Desktop/RISCV-CPU/serial/build/devel
+
+Name: serial
+Description: Description of serial
+Version: 1.2.1
+Cflags: -I/mnt/c/Users/hanchong/Desktop/RISCV-CPU/serial/include
+Libs: -L/mnt/c/Users/hanchong/Desktop/RISCV-CPU/serial/build/devel/lib -lserial -lrt -lpthread
+Requires: 

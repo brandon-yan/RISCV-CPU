@@ -31,7 +31,22 @@ module id_ex(
 );
 
 always @(posedge clk ) begin
-    if (rst == `ResetEnable || ifjump) begin
+    if (rst == `ResetEnable) begin
+        ex_reg1 <= `ZeroReg;
+        ex_reg2 <= `ZeroReg;
+        ex_Imm <= `ZeroWord;
+        ex_rd <= `ZeroReg;
+        ex_rd_enable <= 1'b0;
+        ex_alusel <= `EXE_NOP;
+        ex_aluop <= `NOP;
+        isload <= 1'b0;
+        loadrd <= `ZeroReg;
+        //pc_o <= `ZeroWord;
+        pc_o <= pc;
+    end
+    else if(stall[3] == 1'b1) begin
+    end
+    else if (stall[2] == 1'b1 || ifjump) begin
         ex_reg1 <= `ZeroReg;
         ex_reg2 <= `ZeroReg;
         ex_Imm <= `ZeroWord;
@@ -62,5 +77,6 @@ always @(posedge clk ) begin
             loadrd <= id_rd;
         end
     end
+    
 end
 endmodule

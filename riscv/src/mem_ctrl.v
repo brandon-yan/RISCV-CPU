@@ -24,7 +24,10 @@ module mem_ctrl(
     input wire[7 : 0] data_from_out,
     output reg[7 : 0] data_to_out,
     output reg out_readwrite,
-    output reg[`Addrlen - 1 : 0] addr_to_out
+    output reg[`Addrlen - 1 : 0] addr_to_out,
+    
+    // to stall_ctrl
+    output reg jumpstall
 );
 
 reg[2 : 0] times;
@@ -32,8 +35,12 @@ reg[2 : 0] cnt;
 reg[1 : 0] status;
 
 always @(*) begin
-    if (ifjump == 1'b1 && mem_readwrite == 2'b00) begin
+    if (ifjump == 1'b1 && mem_status != `Work) begin
         status = `Init;
+        jumpstall = 1'b0;
+    end
+    else begin
+        jumpstall = ifjump;
     end
 end
 always @(posedge clk ) begin
@@ -93,11 +100,9 @@ always @(posedge clk ) begin
                 else if (cnt == 3'b100) begin
                     mem_data_o[31 : 24] <= data_from_out;
                 end
-                if (cnt <= 3'b011 && times >= 3'b001) begin
-                    addr_to_out <= addr_to_out + 1'b1;
-                end
                 cnt <= cnt + 1'b1;
                 times <= times - 1'b1;
+                addr_to_out <= addr_to_out + 1'b1;
                 if (times == 3'b000 || cnt == 3'b100) begin
                     status <= `Init;
                     addr_to_out <= 0;
@@ -122,7 +127,7 @@ always @(posedge clk ) begin
                 cnt <= cnt + 1'b1;
                 times <= times - 1'b1;
                 addr_to_out <= addr_to_out + 1'b1;
-                if (cnt == 3'b010 || times <= 3'b010) begin
+                if (cnt == 3'b010 || times <= 3'b001) begin
                     mem_status <= `Done;
                     status <= `Init;
                 end

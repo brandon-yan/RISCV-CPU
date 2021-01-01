@@ -13,12 +13,22 @@ module if_id(
 );
 
 always @(posedge clk ) begin
-    if (rst == `ResetEnable || stall[1] || ifjump) begin
+    if (rst == `ResetEnable) begin
         //id_pc <= `ZeroWord;
         id_pc <= if_pc;
         id_inst <= `ZeroWord;
     end
-    else  begin
+    else if(stall[2] == 1'b1) begin
+    end
+    else if (stall[1] == 1'b1)  begin
+        id_pc <= if_pc;
+        id_inst <= `ZeroWord;
+    end
+    else if (ifjump) begin
+        id_pc <= if_pc;
+        id_inst <= `ZeroWord;
+    end
+    else if (stall[1] == 1'b0) begin
         id_pc <= if_pc;
         id_inst <= if_inst;
     end

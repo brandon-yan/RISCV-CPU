@@ -30,6 +30,16 @@ always @ (posedge clk) begin
         mem_alusel <= `EXE_NOP;
         mem_mem_addr <= `ZeroWord;
     end
+    else if (stall[4] == 1'b1) begin
+    end
+    else if (stall[3] == 1'b1) begin
+        mem_rd_data <= `ZeroWord;
+        mem_rd_addr <= `ZeroReg;
+        mem_rd_enable <= 1'b0;
+        mem_aluop <= `NOP;
+        mem_alusel <= `EXE_NOP;
+        mem_mem_addr <= `ZeroWord;
+    end
     else if (stall[3] == 1'b0) begin
         mem_rd_data <= ex_rd_data;
         mem_rd_addr <= ex_rd_addr;

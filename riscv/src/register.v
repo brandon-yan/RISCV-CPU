@@ -21,9 +21,10 @@ integer i;
 //write 1
 always @(posedge clk) begin
     if (rst == `ResetEnable) begin
-        for (i = 0; i < 32; i = i + 1)
+        for (i = 0; i < 32; i = i + 1) begin
             regs[i] = `ZeroWord;
         end
+    end
     else if (rst == `ResetDisable && write_enable == `WriteEnable) begin
         if (write_addr != `ZeroReg)  begin //not zero register
             regs[write_addr] <= write_data;

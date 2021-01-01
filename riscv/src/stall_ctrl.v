@@ -7,6 +7,7 @@ module stall_ctrl(
     input wire stallreq_from_if,
     input wire stallreq_from_id,
     input wire stallreq_from_mem,
+    input wire jumpstall,
     output reg[5 : 0] stall
 );
 
@@ -20,6 +21,9 @@ always @(*) begin
     else if (stallreq_from_id == `Stop) begin
         stall = 6'b000111;
     end
+//    else if (stallreq_from_if == `Stop || jumpstall == `Stop) begin
+//        stall = 6'b000011;
+//    end
     else if (stallreq_from_if == `Stop) begin
         stall = 6'b000011;
     end

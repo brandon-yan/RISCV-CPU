@@ -9,6 +9,7 @@ module ifetch (
 
     input wire[1 : 0] if_status,
     input wire[`Instlen - 1 : 0] data_from_mem,
+    //output reg[`Addrlen - 1 : 0] if_addr,
     output reg if_readwrite,
     output reg[`Instlen - 1 : 0] inst,
 
@@ -17,6 +18,36 @@ module ifetch (
 
 );
 
+integer i;
+reg[40 : 0] icache[127 : 0];
+
+// always @(*) begin
+//     if (((icache[if_addr[8 : 2]][39 : 32] != inst[16 : 9]) || (icache[if_addr[8 : 2]][40] != 1'b0)) && if_status != `Done) begin
+//         if_readwrite = 1'b1;
+//     end
+//     else begin
+//         if_readwrite = 1'b0;
+//     end
+// end
+
+always @(posedge clk) begin
+    if (rst == `ResetEnable) begin
+        for (i = 0; i < 128; i = i + 1) begin
+            icache[i][40] <= 1'b1;
+        end
+        //if_addr <= `ZeroWord;
+    end
+    else begin
+        if (if_status == `Done) begin
+            icache[pc_o[8 : 2]] <= {1'b0, pc_o[16 : 9], inst};
+            //if_addr <= pc_i + 4;
+        end
+        else begin
+            //if_addr <= pc_i;
+        end
+    end
+end
+
 always @(*) begin
     if (rst == `ResetEnable) begin
         pc_o = `ZeroWord;
@@ -24,6 +55,12 @@ always @(*) begin
         inst = `ZeroWord;
         if_stall_req = 1'b0;
     end
+    else if ((icache[pc_i[8 : 2]][39 : 32] == pc_i[16 : 9]) && icache[pc_i[8 : 2]][40] == 1'b0) begin
+            pc_o = pc_i;
+            if_readwrite = 1'b0;
+            inst = icache[pc_i[8 : 2]][31 : 0];
+            if_stall_req = 1'b0;
+        end
     else begin
         if (if_status == `Done) begin
             pc_o = pc_i;

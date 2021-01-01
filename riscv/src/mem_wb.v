@@ -15,12 +15,12 @@ module mem_wb(
 );
 
 always @ (posedge clk) begin
-    if (rst == `ResetEnable || stall[4] == 1'b1) begin
+    if (rst == `ResetEnable || (stall[4] == 1'b1)) begin
         wb_rd_data <= `ZeroWord;
         wb_rd_addr <= `ZeroReg;
         wb_rd_enable <= `WriteDisable;
     end
-    else begin
+    else if (stall[4] == 1'b0) begin
         wb_rd_data <= mem_rd_data;
         wb_rd_addr <= mem_rd_addr;
         wb_rd_enable <= mem_rd_enable;

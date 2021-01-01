@@ -39,6 +39,7 @@ wire[`Addrlen - 1 : 0] if_pc;
 wire if_readwrite;
 wire[`Instlen - 1 : 0] if_inst;
 wire if_stall_req;
+//wire[`Addrlen - 1 : 0] if_addr;
 
 //if_id
 wire[`Addrlen - 1 : 0] id_pc;
@@ -117,13 +118,14 @@ wire[1 : 0] mem_status;
 wire[7 : 0] data_to_out;
 wire out_readwrite;
 wire[`Addrlen - 1 : 0] addr_to_out;
+wire jumpstall;
 
 //register
 wire[`Reglen - 1 : 0] read_data1;
 wire[`Reglen - 1 : 0] read_data2;
 
 pc_reg _pc_reg (
-  .rst(rst_in), .clk(clk_in), .stall(stall),
+  .rst(rst_in), .clk(clk_in), .stall(stall), 
   .ifjump(ifjump), .jumpaddr(jumpaddr), .pc(pc), .ifjump_o(ifjump_o)
 );
 
@@ -200,16 +202,16 @@ mem_wb _mem_wb (
 stall_ctrl _stall_ctrl (
   .rst(rst_in), .stallreq_from_id(id_stall_req),
   .stallreq_from_if(if_stall_req), .stallreq_from_mem(mem_stall_req),
-  .stall(stall)
+  .stall(stall), .jumpstall(jumpstall)
 );
 
 mem_ctrl _mem_ctrl (
-  .clk(clk_in), .rst(rst_in), .if_addr(if_pc), 
+  .clk(clk_in), .rst(rst_in), .if_addr(if_pc),
   .mem_addr(mem_addr_o), .mem_data_i(data_to_mem), .mem_data_o(mem_data_o), 
   .if_readwrite(if_readwrite), .mem_readwrite(mem_readwrite), .mem_times(mem_times),
   .if_status(if_status), .mem_status(mem_status),
   .data_from_out(mem_din), .data_to_out(mem_dout), 
-  .out_readwrite(mem_wr), .addr_to_out(mem_a), .ifjump(ifjump_o)
+  .out_readwrite(mem_wr), .addr_to_out(mem_a), .ifjump(ifjump_o), .jumpstall(jumpstall)
 );
 
 register _register (

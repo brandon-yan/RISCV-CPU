@@ -49,25 +49,26 @@ always @(*) begin
         data_to_mem = `ZeroWord;
         mem_readwrite = 2'b01;
         case (aluop_i)
-                `LB: begin
-                    mem_times = 3'b001;
-                end 
-                `LH: begin
-                    mem_times = 3'b010;
-                end
-                `LW: begin
-                    mem_times = 3'b100;
-                end
-                `LBU: begin
-                    mem_times = 3'b001;
-                end
-                `LHU: begin
-                    mem_times = 3'b010;
-                end
-                default: begin
-                end
-            endcase
+            `LB: begin
+                mem_times = 3'b001;
+            end 
+            `LH: begin
+                mem_times = 3'b010;
+            end
+            `LW: begin
+                mem_times = 3'b100;
+            end
+            `LBU: begin
+                mem_times = 3'b001;
+            end
+            `LHU: begin
+                mem_times = 3'b010;
+            end
+            default: begin
+            end
+        endcase
         if (mem_status == `Done) begin
+            mem_readwrite = 2'b00;
             mem_stall_req = 1'b0;
             case (aluop_i)
             `LB: begin
