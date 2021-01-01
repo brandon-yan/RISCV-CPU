@@ -119,7 +119,7 @@ wire[1 : 0] if_status;
 wire[1 : 0] mem_status;
 wire[7 : 0] data_to_out;
 wire out_readwrite;
-wire[`Addrlen - 1 : 0] addr_to_out;
+wire[`Addrlen - 1 : 0] out_addr;
 wire jumpstall;
 
 //register
@@ -213,7 +213,7 @@ mem_ctrl _mem_ctrl (
   .if_readwrite(if_readwrite), .mem_readwrite(mem_readwrite), .mem_times(mem_times),
   .if_status(if_status), .mem_status(mem_status),
   .data_from_out(mem_din), .data_to_out(mem_dout), 
-  .out_readwrite(mem_wr), .addr_to_out(mem_a), .ifjump(ifjump), .rdy(_rdy_in)
+  .out_readwrite(mem_wr), .out_addr(mem_a), .ifjump(ifjump), .rdy(_rdy_in)
 );
 
 register _register (

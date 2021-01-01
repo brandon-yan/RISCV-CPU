@@ -36,6 +36,14 @@
 `define Write 2'b10
 `define Done 2'b11
 
+`define Read0 3'b001
+`define Read1 3'b010
+`define Read2 3'b011
+`define Read3 3'b100
+`define Write0 3'b000
+`define Write1 3'b001
+`define Write2 3'b010
+
 //OPCODE
 `define OPlen    7
 `define OPLUI    7'b0110111

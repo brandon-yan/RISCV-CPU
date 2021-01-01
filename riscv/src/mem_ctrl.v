@@ -24,7 +24,7 @@ module mem_ctrl(
     input wire[7 : 0] data_from_out,
     output reg[7 : 0] data_to_out,
     output reg out_readwrite,
-    output reg[`Addrlen - 1 : 0] addr_to_out
+    output reg[`Addrlen - 1 : 0] out_addr
     
 );
 
@@ -50,7 +50,7 @@ always @(posedge clk ) begin
         mem_status <= `Init;
         out_readwrite <= 1'b0;
         data_to_out <= `ZeroWord;
-        addr_to_out <= `ZeroWord;
+        out_addr <= `ZeroWord;
         times <= 3'b000;
         cnt <= 3'b000;
     end
@@ -64,7 +64,7 @@ always @(posedge clk ) begin
                 mem_status <= `Init;
                 out_readwrite <= 1'b0;
                 data_to_out <= `ZeroWord;
-                addr_to_out <= `ZeroWord;
+                out_addr <= `ZeroWord;
                 cnt <= 3'b000;
                 if (mem_readwrite != 2'b00) begin
                     if (mem_readwrite == 2'b01) begin
@@ -76,13 +76,13 @@ always @(posedge clk ) begin
                         status <= `Write;
                         data_to_out <= mem_data_i[7 : 0];
                     end
-                    addr_to_out <= mem_addr;
+                    out_addr <= mem_addr;
                     mem_status <= `Work;
                     times <= mem_times;
                 end
                 else if (if_readwrite != 1'b0 && mem_status != `Work) begin
                     out_readwrite <= 1'b0;
-                    addr_to_out <= if_addr;
+                    out_addr <= if_addr;
                     if (ifjump == 1'b1) begin
                         if_status <= `Init;
                         status <= `Init;
@@ -101,24 +101,34 @@ always @(posedge clk ) begin
                     mem_data_o <= `ZeroWord;
                 end
                 else begin
-                    if (cnt == 3'b001) begin
-                        mem_data_o[7 : 0] <= data_from_out;
-                    end
-                    else if (cnt == 3'b010) begin
-                        mem_data_o[15 : 8] <= data_from_out;
-                    end
-                    else if (cnt == 3'b011) begin
-                        mem_data_o[23 : 16] <= data_from_out;
-                    end
-                    else if (cnt == 3'b100) begin
-                        mem_data_o[31 : 24] <= data_from_out;
-                    end
-                    cnt <= cnt + 1'b1;
-                    times <= times - 1'b1;
-                    addr_to_out <= addr_to_out + 1'b1;
-                    if (times == 3'b000 || cnt == 3'b100) begin
+                    case (cnt)
+                        `Read0: begin
+                            mem_data_o[7 : 0] <= data_from_out;
+                            cnt <= cnt + 1'b1;
+                            out_addr <= out_addr + 1'b1;
+                        end 
+                        `Read1: begin
+                            mem_data_o[15 : 8] <= data_from_out;
+                            cnt <= cnt + 1'b1;
+                            out_addr <= out_addr + 1'b1;
+                        end
+                        `Read2: begin
+                            mem_data_o[23 : 16] <= data_from_out;
+                            cnt <= cnt + 1'b1;
+                            out_addr <= out_addr + 1'b1;
+                        end
+                        `Read3: begin
+                            mem_data_o[31 : 24] <= data_from_out;
+                            cnt <= cnt + 1'b1;
+                        end
+                        default: begin
+                            cnt <= cnt + 1'b1;
+                            out_addr <= out_addr + 1'b1;
+                        end
+                    endcase
+                    if (cnt == times) begin
                         status <= `Init;
-                        addr_to_out <= 0;
+                        out_addr <= `ZeroWord;
                         if (if_status == `Work) begin
                             if_status <= `Done;
                         end
@@ -127,21 +137,33 @@ always @(posedge clk ) begin
                         end
                     end
                 end
-                
             end 
             `Write: begin 
-                if (cnt == 3'b000) begin
-                    data_to_out <= mem_data_i[15 : 8];
-                end
-                else if (cnt == 3'b001) begin
-                    data_to_out <= mem_data_i[23 : 16];
-                end
-                else if (cnt == 3'b010) begin
-                    data_to_out <= mem_data_i[31 : 24];
-                end
-                cnt <= cnt + 1'b1;
-                times <= times - 1'b1;
-                addr_to_out <= addr_to_out + 1'b1;
+                case (cnt)
+                    `Write0: begin
+                        data_to_out <= mem_data_i[15 : 8];
+                        cnt <= cnt + 1'b1;
+                        times <= times - 1'b1;
+                        out_addr <= out_addr + 1'b1;
+                    end 
+                    `Write1: begin
+                        data_to_out <= mem_data_i[23 : 16];
+                        cnt <= cnt + 1'b1;
+                        times <= times - 1'b1;
+                        out_addr <= out_addr + 1'b1;
+                    end
+                    `Write2: begin
+                        data_to_out <= mem_data_i[31 : 24];
+                        cnt <= cnt + 1'b1;
+                        times <= times - 1'b1;
+                        out_addr <= out_addr + 1'b1;
+                    end
+                    default: begin
+                        cnt <= cnt + 1'b1;
+                        times <= times - 1'b1;
+                        out_addr <= out_addr + 1'b1;
+                    end
+                endcase
                 if (cnt == 3'b010 || times <= 3'b001) begin
                     mem_status <= `Done;
                     status <= `Init;
