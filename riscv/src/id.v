@@ -67,13 +67,10 @@ always @(*) begin
     reg1_read_enable = `ReadDisable;
     reg2_read_enable = `ReadDisable;
     rd = `ZeroReg;
-    reg1 = `ZeroReg;
-    reg2 = `ZeroReg;
     aluop = `NOP;
     alusel = `EXE_NOP;
     pc_o = pc;
     useImminstead = 1'b0;
-    id_stall_req = 1'b0;
     case (opcode)
         `OPLUI: begin
             Imm = {inst[31 : 12], {12{1'b0}}};
@@ -334,6 +331,9 @@ end
 
 //read after load
 always @(*) begin
+    if (rst == `ResetEnable) begin
+        id_stall_req = 1'b0;
+    end
     if (isload == 1'b1 && ((reg1_addr_o ==  loadrd) || (reg2_addr_o == loadrd))) begin
         id_stall_req = 1'b1;
     end

@@ -3,6 +3,7 @@
 module if_id(
     input wire clk,
     input wire rst,
+    input wire rdy,
 
     input wire[5 : 0] stall,
     input wire ifjump,
@@ -18,7 +19,7 @@ always @(posedge clk ) begin
         id_pc <= if_pc;
         id_inst <= `ZeroWord;
     end
-    else if(stall[2] == 1'b1) begin
+    else if(rdy == 1'b0 || stall[2] == 1'b1) begin
     end
     else if (stall[1] == 1'b1)  begin
         id_pc <= if_pc;

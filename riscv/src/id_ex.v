@@ -3,7 +3,8 @@
 module id_ex(
     input wire clk,
     input wire rst,
-
+    input wire rdy,
+    
     input wire[5 : 0] stall,
     input wire ifjump,
 
@@ -44,7 +45,7 @@ always @(posedge clk ) begin
         //pc_o <= `ZeroWord;
         pc_o <= pc;
     end
-    else if(stall[3] == 1'b1) begin
+    else if(rdy == 1'b0 || stall[3] == 1'b1) begin
     end
     else if (stall[2] == 1'b1 || ifjump) begin
         ex_reg1 <= `ZeroReg;

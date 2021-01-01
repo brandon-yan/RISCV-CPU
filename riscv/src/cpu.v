@@ -18,6 +18,8 @@ module cpu(
 	output wire [31:0]			dbgreg_dout		// cpu register output (debugging demo)
 );
 
+wire _rdy_in;
+assign _rdy_in = ~((rdy_in == 1'b0) | (io_buffer_full == 1'b1));
 // implementation goes here
 
 // Specifications:
@@ -126,7 +128,7 @@ wire[`Reglen - 1 : 0] read_data2;
 
 pc_reg _pc_reg (
   .rst(rst_in), .clk(clk_in), .stall(stall), 
-  .ifjump(ifjump), .jumpaddr(jumpaddr), .pc(pc), .ifjump_o(ifjump_o)
+  .ifjump(ifjump), .jumpaddr(jumpaddr), .pc(pc), .rdy(_rdy_in)
 );
 
 ifetch _ifetch (
@@ -139,7 +141,7 @@ ifetch _ifetch (
 if_id _if_id (
   .rst(rst_in), .clk(clk_in), .stall(stall),
   .ifjump(ifjump), .if_pc(if_pc), .if_inst(if_inst),
-  .id_pc(id_pc), .id_inst(id_inst)
+  .id_pc(id_pc), .id_inst(id_inst), .rdy(_rdy_in)
 );
 
 id _id (
@@ -161,7 +163,7 @@ id_ex _id_ex (
   .id_rd_enable(id_rd_enable), .id_aluop(id_aluop), .id_alusel(id_alusel), .pc(id_pc_o),
   .ex_reg1(ex_reg1), .ex_reg2(ex_reg2), .ex_Imm(ex_Imm), .ex_rd(ex_rd), .pc_o(ex_pc),
   .ex_rd_enable(ex_rd_enable), .ex_aluop(ex_aluop), .ex_alusel(ex_alusel),
-  .isload(isload), .loadrd(loadrd)
+  .isload(isload), .loadrd(loadrd), .rdy(_rdy_in)
 );
 
 ex _ex (
@@ -178,7 +180,7 @@ ex_mem _ex_mem (
   .ex_rd_data(ex_rd_data_o), .ex_rd_addr(ex_rd_addr_o), .ex_rd_enable(ex_rd_enable_o),
   .ex_aluop(ex_aluop_o), .ex_alusel(ex_alusel_o), .ex_mem_addr(ex_mem_addr),
   .mem_rd_data(mem_rd_data), .mem_rd_addr(mem_rd_addr), .mem_rd_enable(mem_rd_enable),
-  .mem_aluop(mem_aluop), .mem_alusel(mem_alusel), .mem_mem_addr(mem_mem_addr)
+  .mem_aluop(mem_aluop), .mem_alusel(mem_alusel), .mem_mem_addr(mem_mem_addr), .rdy(_rdy_in)
 );
 
 mem _mem (
@@ -196,13 +198,13 @@ mem_wb _mem_wb (
   .clk(clk_in), .rst(rst_in), .mem_rd_data(mem_rd_data_o),
   .mem_rd_addr(mem_rd_addr_o), .mem_rd_enable(mem_rd_enable_o),
   .wb_rd_data(wb_rd_data), .wb_rd_addr(wb_rd_addr), 
-  .wb_rd_enable(wb_rd_enable), .stall(stall)
+  .wb_rd_enable(wb_rd_enable), .stall(stall), .rdy(_rdy_in)
 );
 
 stall_ctrl _stall_ctrl (
   .rst(rst_in), .stallreq_from_id(id_stall_req),
   .stallreq_from_if(if_stall_req), .stallreq_from_mem(mem_stall_req),
-  .stall(stall), .jumpstall(jumpstall)
+  .stall(stall)//, .jumpstall(jumpstall)
 );
 
 mem_ctrl _mem_ctrl (
@@ -211,7 +213,7 @@ mem_ctrl _mem_ctrl (
   .if_readwrite(if_readwrite), .mem_readwrite(mem_readwrite), .mem_times(mem_times),
   .if_status(if_status), .mem_status(mem_status),
   .data_from_out(mem_din), .data_to_out(mem_dout), 
-  .out_readwrite(mem_wr), .addr_to_out(mem_a), .ifjump(ifjump_o), .jumpstall(jumpstall)
+  .out_readwrite(mem_wr), .addr_to_out(mem_a), .ifjump(ifjump), .rdy(_rdy_in)
 );
 
 register _register (

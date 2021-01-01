@@ -105,6 +105,9 @@ always @(*) begin
                 rd_data_o = reg2;
                 mem_addr = reg1 + Imm;
             end
+            `EXE_JAL: begin
+                rd_data_o = pc + 4;
+            end
             default: begin
                 rd_data_o = `ZeroWord;
             end
@@ -184,12 +187,10 @@ always @(*) begin
             `JAL: begin
                 ifjump = 1'b1;
                 jumpaddr = pc + Imm;
-                rd_data_o = pc + 4;
             end
             `JALR: begin
                 ifjump = 1'b1;
                 jumpaddr = (reg1 + Imm) & 32'hfffffffe;
-                rd_data_o = pc + 4;
             end
             default: begin
             end

@@ -3,6 +3,7 @@
 module pc_reg(
     input wire clk,
     input wire rst,
+    input wire rdy,
 
     //from stall_ctrl
     input wire[5 : 0] stall,
@@ -11,8 +12,7 @@ module pc_reg(
     input wire ifjump,
     input wire[`Addrlen - 1 : 0] jumpaddr,
 
-    output reg[`Addrlen - 1 : 0] pc,
-    output reg ifjump_o
+    output reg[`Addrlen - 1 : 0] pc
     //output reg chip_enable
 
 );
@@ -30,15 +30,14 @@ always @(posedge clk ) begin
     //if (chip_enable == `ChipDisable) begin
     if (rst == `ResetEnable) begin
         pc <= `ZeroWord;
-        ifjump_o <= ifjump;
+    end
+    else if (rdy == 1'b0) begin
     end
     else if (ifjump == `Branch) begin
         pc <= jumpaddr;
-        ifjump_o <= ifjump;
     end
     else if (stall[0] == `NoStop) begin
         pc <= pc + 4'h4;
-        ifjump_o <= ifjump;
     end
 end
 

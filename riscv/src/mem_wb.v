@@ -3,6 +3,7 @@
 module mem_wb(
     input wire clk,
     input wire rst,
+    input wire rdy,
     
     input wire[`Reglen - 1 : 0] mem_rd_data,
     input wire[`RegAddrlen - 1 : 0] mem_rd_addr,
@@ -19,6 +20,8 @@ always @ (posedge clk) begin
         wb_rd_data <= `ZeroWord;
         wb_rd_addr <= `ZeroReg;
         wb_rd_enable <= `WriteDisable;
+    end
+    else if (rdy == 1'b0) begin
     end
     else if (stall[4] == 1'b0) begin
         wb_rd_data <= mem_rd_data;

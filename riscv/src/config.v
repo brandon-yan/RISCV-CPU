@@ -61,7 +61,7 @@
 `define fun3LH    3'b001
 `define fun3LW    3'b010
 `define fun3LBU   3'b100
-`define fun3LHU   3'b100
+`define fun3LHU   3'b101
 `define fun3SB    3'b000
 `define fun3SH    3'b001 
 `define fun3SW    3'b010

@@ -3,6 +3,7 @@
 module mem_ctrl(
     input wire clk,
     input wire rst,
+    input wire rdy,
     
     input wire ifjump,
 
@@ -24,25 +25,24 @@ module mem_ctrl(
     input wire[7 : 0] data_from_out,
     output reg[7 : 0] data_to_out,
     output reg out_readwrite,
-    output reg[`Addrlen - 1 : 0] addr_to_out,
+    output reg[`Addrlen - 1 : 0] addr_to_out
     
-    // to stall_ctrl
-    output reg jumpstall
 );
 
 reg[2 : 0] times;
 reg[2 : 0] cnt;
 reg[1 : 0] status;
 
-always @(*) begin
-    if (ifjump == 1'b1 && mem_status != `Work) begin
-        status = `Init;
-        jumpstall = 1'b0;
-    end
-    else begin
-        jumpstall = ifjump;
-    end
-end
+// always @(*) begin
+//     if (ifjump == 1'b1 && mem_status != `Work) begin
+//         status = `Init;
+//         jumpstall = 1'b0;
+//     end
+//     else begin
+//         jumpstall = ifjump;
+//     end
+// end
+
 always @(posedge clk ) begin
     if (rst == `ResetEnable) begin
         status <= `Init;
@@ -54,6 +54,8 @@ always @(posedge clk ) begin
         addr_to_out <= `ZeroWord;
         times <= 3'b000;
         cnt <= 3'b000;
+    end
+    else if (rdy == 1'b0) begin
     end
     else begin
         case (status)
@@ -79,40 +81,54 @@ always @(posedge clk ) begin
                     mem_status <= `Work;
                     times <= mem_times;
                 end
-                else if (if_readwrite != 1'b0) begin
+                else if (if_readwrite != 1'b0 && mem_status != `Work) begin
                     out_readwrite <= 1'b0;
                     addr_to_out <= if_addr;
-                    if_status <= `Work;
-                    status <= `Read;
+                    if (ifjump == 1'b1) begin
+                        if_status <= `Init;
+                        status <= `Init;
+                    end
+                    else begin
+                        if_status <= `Work;
+                        status <= `Read;
+                    end
                     times <= 3'b100;
                 end
             end
             `Read: begin
-                if (cnt == 3'b001) begin
-                    mem_data_o[7 : 0] <= data_from_out;
-                end
-                else if (cnt == 3'b010) begin
-                    mem_data_o[15 : 8] <= data_from_out;
-                end
-                else if (cnt == 3'b011) begin
-                    mem_data_o[23 : 16] <= data_from_out;
-                end
-                else if (cnt == 3'b100) begin
-                    mem_data_o[31 : 24] <= data_from_out;
-                end
-                cnt <= cnt + 1'b1;
-                times <= times - 1'b1;
-                addr_to_out <= addr_to_out + 1'b1;
-                if (times == 3'b000 || cnt == 3'b100) begin
+                if (ifjump == 1'b1 && mem_status != `Work) begin
+                    if_status <= `Init;
                     status <= `Init;
-                    addr_to_out <= 0;
-                    if (if_status == `Work) begin
-                        if_status <= `Done;
+                    mem_data_o <= `ZeroWord;
+                end
+                else begin
+                    if (cnt == 3'b001) begin
+                        mem_data_o[7 : 0] <= data_from_out;
                     end
-                    else begin
-                        mem_status <= `Done;
+                    else if (cnt == 3'b010) begin
+                        mem_data_o[15 : 8] <= data_from_out;
+                    end
+                    else if (cnt == 3'b011) begin
+                        mem_data_o[23 : 16] <= data_from_out;
+                    end
+                    else if (cnt == 3'b100) begin
+                        mem_data_o[31 : 24] <= data_from_out;
+                    end
+                    cnt <= cnt + 1'b1;
+                    times <= times - 1'b1;
+                    addr_to_out <= addr_to_out + 1'b1;
+                    if (times == 3'b000 || cnt == 3'b100) begin
+                        status <= `Init;
+                        addr_to_out <= 0;
+                        if (if_status == `Work) begin
+                            if_status <= `Done;
+                        end
+                        else begin
+                            mem_status <= `Done;
+                        end
                     end
                 end
+                
             end 
             `Write: begin 
                 if (cnt == 3'b000) begin

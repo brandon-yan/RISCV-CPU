@@ -37,8 +37,8 @@ always @(*) begin
         rd_enable_o = `WriteDisable;
         mem_addr_o = `ZeroWord;
         data_to_mem = `ZeroWord;
-        mem_times = 0;
-        mem_readwrite = 0;
+        mem_times = 3'b000;
+        mem_readwrite = 2'b00;
         mem_stall_req = 1'b0;
     end
     else if (alusel_i == `EXE_LOAD) begin
@@ -65,6 +65,7 @@ always @(*) begin
                 mem_times = 3'b010;
             end
             default: begin
+                mem_times = 3'b000;
             end
         endcase
         if (mem_status == `Done) begin
@@ -115,6 +116,7 @@ always @(*) begin
                 mem_times = 3'b100;
             end
             default: begin
+                mem_times = 3'b000;
             end
         endcase
         if (mem_status == `Done) begin

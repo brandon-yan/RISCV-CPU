@@ -7,7 +7,7 @@ module stall_ctrl(
     input wire stallreq_from_if,
     input wire stallreq_from_id,
     input wire stallreq_from_mem,
-    input wire jumpstall,
+//input wire jumpstall,
     output reg[5 : 0] stall
 );
 

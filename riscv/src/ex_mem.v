@@ -3,6 +3,7 @@
 module ex_mem(
     input wire clk,
     input wire rst,
+    input wire rdy,
 
     input wire[5 : 0] stall,
 
@@ -30,7 +31,7 @@ always @ (posedge clk) begin
         mem_alusel <= `EXE_NOP;
         mem_mem_addr <= `ZeroWord;
     end
-    else if (stall[4] == 1'b1) begin
+    else if (rdy == 1'b0 || stall[4] == 1'b1) begin
     end
     else if (stall[3] == 1'b1) begin
         mem_rd_data <= `ZeroWord;
