@@ -6,7 +6,7 @@ module id_ex(
     input wire rdy,
     
     input wire[5 : 0] stall,
-    input wire ifjump,
+    input wire prediction_res,
 
     input wire[`Reglen - 1 : 0] id_reg1,
     input wire[`Reglen - 1 : 0] id_reg2,
@@ -42,11 +42,11 @@ always @(posedge clk ) begin
         ex_aluop <= `NOP;
         isload <= 1'b0;
         loadrd <= `ZeroReg;
-        pc_o <= pc;
+        pc_o <= `ZeroWord;
     end
     else if(rdy == 1'b0 || stall[3] == 1'b1) begin
     end
-    else if (stall[2] == 1'b1 || ifjump) begin
+    else if (stall[2] == 1'b1 || prediction_res == 1'b0) begin
         ex_reg1 <= `ZeroReg;
         ex_reg2 <= `ZeroReg;
         ex_Imm <= `ZeroWord;
@@ -56,7 +56,7 @@ always @(posedge clk ) begin
         ex_aluop <= `NOP;
         isload <= 1'b0;
         loadrd <= `ZeroReg;
-        pc_o <= pc;
+        pc_o <= `ZeroWord;
     end
     else if(stall[2] == 1'b0) begin
         ex_reg1 <= id_reg1;

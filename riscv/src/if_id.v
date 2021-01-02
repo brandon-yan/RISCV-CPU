@@ -6,7 +6,7 @@ module if_id(
     input wire rdy,
 
     input wire[5 : 0] stall,
-    input wire ifjump,
+    input wire prediction_res,
     input wire[`Addrlen - 1 : 0] if_pc,
     input wire[`Instlen - 1 : 0] if_inst,
     output reg[`Addrlen - 1 : 0] id_pc,
@@ -15,18 +15,14 @@ module if_id(
 
 always @(posedge clk ) begin
     if (rst == `ResetEnable) begin
-        //id_pc <= `ZeroWord;
-        id_pc <= if_pc;
+        id_pc <= `ZeroWord;
+        //id_pc <= if_pc;
         id_inst <= `ZeroWord;
     end
     else if(rdy == 1'b0 || stall[2] == 1'b1) begin
     end
-    else if (stall[1] == 1'b1)  begin
-        id_pc <= if_pc;
-        id_inst <= `ZeroWord;
-    end
-    else if (ifjump) begin
-        id_pc <= if_pc;
+    else if (stall[1] == 1'b1 || prediction_res == 1'b0)  begin
+        id_pc <= `ZeroWord;
         id_inst <= `ZeroWord;
     end
     else if (stall[1] == 1'b0) begin

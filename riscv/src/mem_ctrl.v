@@ -5,7 +5,7 @@ module mem_ctrl(
     input wire rst,
     input wire rdy,
     
-    input wire ifjump,
+    input wire prediction_res,
 
     input wire[`Addrlen - 1 : 0] if_addr,
     input wire[`Addrlen - 1 : 0] mem_addr,
@@ -80,10 +80,10 @@ always @(posedge clk ) begin
                     mem_status <= `Work;
                     times <= mem_times;
                 end
-                else if (if_readwrite != 1'b0 && mem_status != `Work) begin
+                else if (if_readwrite != 1'b0) begin
                     out_readwrite <= 1'b0;
                     out_addr <= if_addr;
-                    if (ifjump == 1'b1) begin
+                    if (prediction_res == 1'b0  && mem_status != `Work) begin
                         if_status <= `Init;
                         status <= `Init;
                     end
@@ -95,7 +95,7 @@ always @(posedge clk ) begin
                 end
             end
             `Read: begin
-                if (ifjump == 1'b1 && mem_status != `Work) begin
+                if (prediction_res == 1'b0 && mem_status != `Work) begin
                     if_status <= `Init;
                     status <= `Init;
                     mem_data_o <= `ZeroWord;

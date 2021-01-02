@@ -34,14 +34,12 @@ assign _rdy_in = ~((rdy_in == 1'b0) | (io_buffer_full == 1'b1));
 
 //pc_reg
 wire[`Addrlen - 1 : 0] pc;
-wire ifjump_o;
 
 //if
 wire[`Addrlen - 1 : 0] if_pc;
 wire if_readwrite;
 wire[`Instlen - 1 : 0] if_inst;
 wire if_stall_req;
-//wire[`Addrlen - 1 : 0] if_addr;
 
 //if_id
 wire[`Addrlen - 1 : 0] id_pc;
@@ -83,7 +81,11 @@ wire[`Addrlen - 1 : 0] ex_mem_addr;
 wire[`AluOPlen - 1 : 0] ex_aluop_o;
 wire[`AluSellen - 1 : 0] ex_alusel_o;
 wire ex_rd_enable_o;
-wire ifjump;
+wire branch_taken;
+wire branch_flag;
+wire[`Addrlen - 1 : 0] branch_pc;
+wire[`Addrlen - 1 : 0] branch_target;
+wire prediction_res;
 wire[`Addrlen - 1 : 0] jumpaddr;
 
 //ex_mem
@@ -128,7 +130,9 @@ wire[`Reglen - 1 : 0] read_data2;
 
 pc_reg _pc_reg (
   .rst(rst_in), .clk(clk_in), .stall(stall), 
-  .ifjump(ifjump), .jumpaddr(jumpaddr), .pc(pc), .rdy(_rdy_in)
+  .prediction_res(prediction_res), .jumpaddr(jumpaddr), .pc(pc), .rdy(_rdy_in),
+  .branch_target(branch_target), .branch_taken(branch_taken),
+  .branch_pc(branch_pc), .branch_flag(branch_flag)
 );
 
 ifetch _ifetch (
@@ -140,7 +144,7 @@ ifetch _ifetch (
 
 if_id _if_id (
   .rst(rst_in), .clk(clk_in), .stall(stall),
-  .ifjump(ifjump), .if_pc(if_pc), .if_inst(if_inst),
+  .prediction_res(prediction_res), .if_pc(if_pc), .if_inst(if_inst),
   .id_pc(id_pc), .id_inst(id_inst), .rdy(_rdy_in)
 );
 
@@ -158,7 +162,7 @@ id _id (
 );
 
 id_ex _id_ex (
-  .clk(clk_in), .rst(rst_in), .stall(stall), .ifjump(ifjump), 
+  .clk(clk_in), .rst(rst_in), .stall(stall), .prediction_res(prediction_res),
   .id_reg1(id_reg1), .id_reg2(id_reg2), .id_Imm(id_Imm), .id_rd(id_rd),
   .id_rd_enable(id_rd_enable), .id_aluop(id_aluop), .id_alusel(id_alusel), .pc(id_pc_o),
   .ex_reg1(ex_reg1), .ex_reg2(ex_reg2), .ex_Imm(ex_Imm), .ex_rd(ex_rd), .pc_o(ex_pc),
@@ -172,7 +176,10 @@ ex _ex (
   .aluop(ex_aluop), .alusel(ex_alusel), .rd_data_o(ex_rd_data_o),
   .rd_addr(ex_rd_addr_o), .mem_addr(ex_mem_addr), .aluop_o(ex_aluop_o),
   .alusel_o(ex_alusel_o), .rd_enable_o(ex_rd_enable_o), 
-  .ifjump(ifjump), .jumpaddr(jumpaddr)
+  .prediction_res(prediction_res), .jumpaddr(jumpaddr),
+  .branch_target(branch_target), .branch_taken(branch_taken),
+  .branch_pc(branch_pc), .branch_flag(branch_flag),
+  .pc_pc(pc), .if_pc(if_pc), .id_pc(id_pc)
 );
 
 ex_mem _ex_mem (
@@ -213,7 +220,7 @@ mem_ctrl _mem_ctrl (
   .if_readwrite(if_readwrite), .mem_readwrite(mem_readwrite), .mem_times(mem_times),
   .if_status(if_status), .mem_status(mem_status),
   .data_from_out(mem_din), .data_to_out(mem_dout), 
-  .out_readwrite(mem_wr), .out_addr(mem_a), .ifjump(ifjump), .rdy(_rdy_in)
+  .out_readwrite(mem_wr), .out_addr(mem_a), .prediction_res(prediction_res), .rdy(_rdy_in)
 );
 
 register _register (

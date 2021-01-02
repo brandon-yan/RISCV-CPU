@@ -19,11 +19,35 @@ module ex(
     output reg[`AluSellen - 1 : 0] alusel_o,
     output reg rd_enable_o,
 
-    output reg ifjump,
+
+    input wire[`Addrlen - 1 : 0] pc_pc,
+    input wire[`Addrlen - 1 : 0] if_pc,
+    input wire[`Addrlen - 1 : 0] id_pc,
+    output reg branch_taken,
+    output reg branch_flag,
+    output reg[`Addrlen - 1 : 0] branch_pc,
+    output reg[`Addrlen - 1 : 0] branch_target,
+    output reg prediction_res,
     output reg[`Addrlen - 1 : 0] jumpaddr
 );
 
 reg[`Reglen - 1 : 0] res;
+reg[`Addrlen - 1 : 0] prediction_pc;
+
+always @(*) begin
+    if (id_pc != `ZeroWord) begin
+        prediction_pc = id_pc;
+    end
+    else if (if_pc != `ZeroWord) begin
+        prediction_pc = if_pc;
+    end 
+    else if (pc_pc != `ZeroWord) begin
+        prediction_pc = pc_pc;
+    end
+    else begin 
+        prediction_pc = `ZeroWord;
+    end
+end
 
 //do the calculation
 always @(*) begin
@@ -117,82 +141,164 @@ end
 
 always @(*) begin
     if (rst == `ResetEnable) begin
-        ifjump = 1'b0;
         jumpaddr = `ZeroWord;
+        prediction_res = 1'b1;
+        branch_flag = 1'b0;
+        branch_pc = `ZeroWord;
+        branch_target = `ZeroWord;
+        branch_taken = 1'b0;
     end
     else begin
-        ifjump = 1'b0;
-        jumpaddr = `ZeroWord;
         case (aluop)
             `BEQ: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if (reg1 == reg2) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end 
             `BNE: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if (reg1 != reg2) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end
             `BLT: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if (($signed(reg1)) < ($signed(reg2))) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end
             `BLTU: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if  (reg1 < reg2) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end
             `BGE: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if (($signed(reg1)) >= ($signed(reg2))) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end
             `BGEU: begin
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
                 if (reg1 >= reg2) begin
-                    ifjump = 1'b1;
+                    branch_taken = 1'b1;
                     jumpaddr = pc + Imm;
                 end
                 else begin
-                    ifjump = 1'b0;
+                    branch_taken = 1'b0;
                     jumpaddr = pc + 4;
+                end
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
                 end
             end
             `JAL: begin
-                ifjump = 1'b1;
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = pc + Imm;
+                branch_taken = 1'b1;
                 jumpaddr = pc + Imm;
+                //prediction_res = 1'b0;
+                if (jumpaddr != prediction_pc) begin
+                    prediction_res = 1'b0;
+                end
+                else begin
+                    prediction_res = 1'b1;
+                end
             end
             `JALR: begin
-                ifjump = 1'b1;
+                branch_flag = 1'b1;
+                branch_pc = pc;
+                branch_target = (reg1 + Imm) & 32'hfffffffe;
+                branch_taken = 1'b1;
                 jumpaddr = (reg1 + Imm) & 32'hfffffffe;
+                prediction_res = 1'b0;
+//                if (jumpaddr != prediction_pc) begin
+//                    prediction_res = 1'b0;
+//                end
+//                else begin
+//                    prediction_res = 1'b1;
+//                end
             end
             default: begin
+                jumpaddr = `ZeroWord;
+                prediction_res = 1'b1;
+                branch_flag = 1'b0;
+                branch_pc = `ZeroWord;
+                branch_target = `ZeroWord;
+                branch_taken = 1'b0;
             end
         endcase
     end
